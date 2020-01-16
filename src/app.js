@@ -2,9 +2,22 @@ import createError from 'http-errors'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
+import mongoose from 'mongoose'
 
 import indexRouter from './routes/index'
-import usersRouter from './routes/users'
+import usersRouter from './routes/User'
+
+const DB_PORT = 27017
+const DB_URL = process.env.MONGODB_HOST || 'mongodb://localhost'
+
+// MongoDB
+mongoose.connect(
+  `${DB_URL}:${DB_PORT}/koomtone`,
+  { useUnifiedTopology: true, useNewUrlParser: true },
+)
+const db = mongoose.connection
+db.once('open', () => console.log('connected to MongoDB.'))
+db.on('error', console.error.bind(console, 'connection error:'))
 
 const port = process.env.PORT || 3000
 const app = express();

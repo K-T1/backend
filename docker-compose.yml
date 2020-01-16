@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  db:
+    image: mongo
+    container_name: koomtone-db
+    environment:
+      - MONGO_INITDB_DATABASE=koomtone
+    ports:
+      - 27017:27017
+    volumes:
+      - ./db:/data/db
+    restart: always
