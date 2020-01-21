@@ -1,9 +1,10 @@
 import { Schema, model } from 'mongoose';
 
-const User = new Schema({
-  count: Number,
+const Photo = new Schema({
+  usageCount: Number,
   url: String,
   deletedAt: Date,
+  ownerId: Schema.Types.ObjectId
 }, {
   timestamps: true,
   toObject: {
@@ -11,5 +12,5 @@ const User = new Schema({
   }
 })
 
-export default model('User', User);
+export default model('Photo', Photo);
 

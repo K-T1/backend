@@ -6,6 +6,7 @@ import mongoose from '../mongoose'
 
 import indexRouter from './routes/index'
 import usersRouter from './routes/User'
+import photoRouter from './routes/Photo'
 
 const DB_PORT = 27017
 const DB_URL = process.env.MONGODB_HOST || 'mongodb://localhost'
@@ -29,6 +30,7 @@ app.use(cookieParser());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/photo', photoRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
