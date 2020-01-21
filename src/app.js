@@ -2,7 +2,7 @@ import createError from 'http-errors'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
-import mongoose from 'mongoose'
+import mongoose from '../mongoose'
 
 import indexRouter from './routes/index'
 import usersRouter from './routes/User'

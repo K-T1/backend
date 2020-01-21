@@ -1,11 +1,11 @@
 import { Schema, model } from 'mongoose';
 
 const User = new Schema({
-  displayName: String,
-  email: String,
-  password: String,
-  favorite: [Schema.Types.ObjectId],
+  count: Number,
+  url: String,
+  deletedAt: Date,
 }, {
+  timestamps: true,
   toObject: {
     virtuals: true,
   }
