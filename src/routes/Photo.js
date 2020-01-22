@@ -1,6 +1,7 @@
 import express from 'express'
 import Photo from '../models/Photo'
 import validator from '../../validation'
+import { modelPaginator } from '../../pagination'
 
 const router = express.Router();
 
@@ -15,8 +16,17 @@ function createPhoto(url, ownerId) {
 }
 
 router.get('/', async (req, res) => {
-  let photos = await Photo.find({ deletedAt: null })
-  photos = photos.map(photo => photo.toObject({ virtuals: true }))
+  let photos = await Photo.paginate(
+  { 
+    deletedAt: null 
+  },  
+  {
+    page: parseInt(req.query.page) || 1,
+    limit: parseInt(req.query.limit) || 20,
+    sort: { createdAt: -1 }
+  })
+  photos = modelPaginator(photos)
+  photos.data = photos.data.map(photo => photo.toObject({ virtuals: true }))
   res.send(200, photos)
 })
 
