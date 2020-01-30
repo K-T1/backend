@@ -5,10 +5,12 @@ import { modelPaginator } from '../../pagination'
 
 const router = express.Router();
 
-function createPhoto(url, ownerId) {
+function createPhoto(req) {
   const photo = new Photo({
-    url: url,
-    ownerId: ownerId,
+    url: req.url,
+    ownerId: req.ownerId,
+    width: req.width,
+    height: req.height,
     deletedAt: null,
     usageCount: 0
   })
@@ -41,7 +43,7 @@ router.get('/:photoId', async (req, res) => {
 
 router.post('/upload', async (req, res) => {
   //TODO: Check url
-  const photo = createPhoto(req.body.url, req.body.ownerId)
+  const photo = createPhoto(req.body)
   await photo.save()
   res.send(200, photo.toObject({ virtuals: true }))
 })
@@ -55,7 +57,7 @@ router.post('/process', async (req, res) => {
   original.usageCount += 1
   await original.save()
   //TODO: Check url
-  const photo = createPhoto(req.body.url, req.body.ownerId)
+  const photo = createPhoto(req.body)
   await photo.save()
   res.send(200, photo.toObject({ virtuals: true }))
 })
@@ -69,6 +71,28 @@ router.delete('/delete/:photoId', async (req, res) => {
   photo.deletedAt = new Date();
   await photo.save()
   res.send(200, 'Removed!')
+})
+
+router.put('/fav/:photoId', async (req, res) => {
+  const photo = await Photo.findOne({ _id: req.params.photoId })
+  if (!photo) {
+    res.send(400, 'Photo not found')
+    return
+  }
+  photo.favorite += 1
+  await photo.save()
+  res.send(200, photo.toObject({ virtuals: true }))
+})
+
+router.put('/unfav/:photoId', async (req, res) => {
+  const photo = await Photo.findOne({ _id: req.params.photoId })
+  if (!photo) {
+    res.send(400, 'Photo not found')
+    return
+  }
+  photo.favorite -= 1
+  await photo.save()
+  res.send(200, photo.toObject({ virtuals: true }))
 })
 
 export default router
