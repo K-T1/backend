@@ -4,6 +4,11 @@ import validator from '../../validation'
 
 const router = express.Router();
 
+function validateEmail(email) {
+  var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(email);
+}
+
 router.get('/', async (req, res) => {  
   const users = await User.find({});
   if (!users) {
@@ -33,11 +38,15 @@ router.post('/register', async (req, res) => {
     const duplicatedUser = await User.findOne({ displayName: req.body.displayName })
     if(duplicatedUser) {
       res.send(422, 'This display name is already used')
+    } else if(!validateEmail(req.body.email)) {
+      console.log('in');
+      res.send(422, 'Invalid format')
     } else {
       const user = new User({
         displayName: req.body.displayName,
         password: req.body.password,
         email: req.body.email,
+        displayImage: req.body.displayImage
       })
       await user.save()
       res.send(200, user.toObject({ virtuals: true }))
