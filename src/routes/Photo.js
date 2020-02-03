@@ -5,7 +5,7 @@ import { modelPaginator } from '../../pagination'
 
 const router = express.Router();
 
-function createPhoto(req) {
+const createPhoto = (req) => {
   const photo = new Photo({
     url: req.url,
     ownerId: req.ownerId,
@@ -15,6 +15,16 @@ function createPhoto(req) {
     usageCount: 0
   })
   return photo
+}
+
+const validateUrl = (str) => {
+  var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+    '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+    '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+    '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+    '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+  return !pattern.test(str);
 }
 
 router.get('/', async (req, res) => {
@@ -42,13 +52,21 @@ router.get('/:photoId', async (req, res) => {
 })
 
 router.post('/upload', async (req, res) => {
-  //TODO: Check url
+  if (!validateUrl(req.body.url)) {
+    res.send(422, 'URL is invalid')
+    return
+  }
   const photo = createPhoto(req.body)
   await photo.save()
   res.send(200, photo.toObject({ virtuals: true }))
 })
 
 router.post('/process', async (req, res) => {
+  if (!validateUrl(req.body.url)) {
+    console.log('in');
+    res.send(422, 'URL is invalid')
+    return
+  }
   const original = await Photo.findOne({ _id: req.body.originalId})
   if(!original) {
     res.send(400, 'Photo not found')
@@ -56,7 +74,6 @@ router.post('/process', async (req, res) => {
   }
   original.usageCount += 1
   await original.save()
-  //TODO: Check url
   const photo = createPhoto(req.body)
   await photo.save()
   res.send(200, photo.toObject({ virtuals: true }))
