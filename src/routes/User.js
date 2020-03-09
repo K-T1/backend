@@ -2,6 +2,7 @@ import express from 'express'
 import bcrypt from 'bcrypt'
 import User from '../models/User'
 import validator from '../../validation'
+import Photo from '../models/Photo';
 
 const router = express.Router();
 
@@ -19,13 +20,19 @@ router.get('/', async (req, res) => {
   if (!users) {
     res.send(404, 'users not found');
   }
-  const response = users.map( user => user.toObject({ virtuals: true }))
+  const response = await Promise.all(users.map(async (user) => { 
+    const photos = await Photo.find({ ownerId: user._id })
+    user.photos = photos
+    return user.toObject({ virtuals: true }) 
+  }))
   res.send(response);
 });
 
 router.get('/:userId', async (req, res) => {
   try {
     const user = await User.findOne({ _id: req.params.userId })
+    const photos = await Photo.find({ ownerId: req.params.userId })
+    user.photos = photos
     res.send(user.toObject({ virtuals: true }));
   } catch (error) {
     res.send(404, 'user not found');
@@ -35,6 +42,8 @@ router.get('/:userId', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const user = await User.findOne({ uid: req.body.uid })
+    const photos = await Photo.find({ ownerId: req.params.userId })
+    user.photos = photos
     res.send(user.toObject({ virtuals: true }));
   } catch (error) {
     res.send(404, 'user not found');
