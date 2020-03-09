@@ -20,11 +20,11 @@ router.get('/', async (req, res) => {
   if (!users) {
     res.send(404, 'users not found');
   }
-  const response = users.map( (user) => { 
-    const photos = Photo.find({ ownerId: user._id })
+  const response = await Promise.all(users.map(async (user) => { 
+    const photos = await Photo.find({ ownerId: user._id })
     user.photos = photos
     return user.toObject({ virtuals: true }) 
-  })
+  }))
   res.send(response);
 });
 
