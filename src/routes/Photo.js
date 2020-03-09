@@ -39,9 +39,13 @@ router.get('/', async (req, res) => {
     limit: parseInt(req.query.limit) || 20,
     sort: { createdAt: -1 }
   })
-  photos = modelPaginator(photos)
-  photos.data = photos.data.map(photo => photo.toObject({ virtuals: true }))
-  res.send(200, photos)
+  const population = photos.docs.map(photo => photo.populate('owner').execPopulate())
+  await Promise.all(population)
+
+  const paginate = modelPaginator(photos)
+  paginate.data = paginate.data.map(photo => photo.toObject({ virtuals: true }))
+
+  res.send(200, paginate)
 })
 
 router.get('/:photoId', async (req, res) => {
@@ -50,6 +54,7 @@ router.get('/:photoId', async (req, res) => {
     res.send(400, 'Photo not found')
     return
   }
+  await photo.populate('owner').execPopulate()
   res.send(200, photo.toObject({ virtuals: true }))
 })
 

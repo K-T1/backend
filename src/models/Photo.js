@@ -15,5 +15,12 @@ const Photo = new Schema({
   }
 })
 
+Photo.virtual('owner', {
+  ref: 'User',
+  localField: 'ownerId',
+  foreignField: '_id',
+  justOne: true
+})
+
 export default model('Photo', Photo);
 
