@@ -2,6 +2,7 @@ import express from 'express'
 import Photo from '../models/Photo'
 import validator from '../../validation'
 import { modelPaginator } from '../../pagination'
+import User from '../models/User';
 
 const router = express.Router();
 
@@ -12,7 +13,8 @@ const createPhoto = (req) => {
     width: req.width,
     height: req.height,
     deletedAt: null,
-    usageCount: 0
+    usageCount: 0,
+    favorite: 0,
   })
   return photo
 }
@@ -56,6 +58,10 @@ router.post('/upload', async (req, res) => {
     res.send(422, 'URL is invalid')
     return
   }
+  if (!req.body.ownerId) {
+    res.send(422, 'OwnerId is required')
+    return
+  }
   const photo = createPhoto(req.body)
   await photo.save()
   res.send(200, photo.toObject({ virtuals: true }))
@@ -90,25 +96,44 @@ router.delete('/delete/:photoId', async (req, res) => {
   res.send(200, 'Removed!')
 })
 
-router.put('/fav/:photoId', async (req, res) => {
-  const photo = await Photo.findOne({ _id: req.params.photoId })
+router.put('/fav', async (req, res) => {
+  const photo = await Photo.findOne({ _id: req.body.photoId })
+  const user = await User.findOne({ _id: req.body.userId})
   if (!photo) {
     res.send(400, 'Photo not found')
+    return
+  }
+  if (!user) {
+    res.send(400, 'User not found')
     return
   }
   photo.favorite += 1
+  user.favoritePhotos.push(photo._id)
   await photo.save()
+  await user.save()
   res.send(200, photo.toObject({ virtuals: true }))
 })
 
-router.put('/unfav/:photoId', async (req, res) => {
-  const photo = await Photo.findOne({ _id: req.params.photoId })
+router.put('/unfav', async (req, res) => {
+  const photo = await Photo.findOne({ _id: req.body.photoId })
+  const user = await User.findOne({ _id: req.body.userId})
   if (!photo) {
     res.send(400, 'Photo not found')
     return
   }
+  if (!user) {
+    res.send(400, 'User not found')
+    return
+  }
   photo.favorite -= 1
+
+  const index = user.favoritePhotos.indexOf(photo._id)
+  if (index >= 0) {
+    user.favoritePhotos.splice(index, 1);
+  }
+
   await photo.save()
+  await user.save()
   res.send(200, photo.toObject({ virtuals: true }))
 })
 
