@@ -32,6 +32,15 @@ router.get('/:userId', async (req, res) => {
   }
 })
 
+router.post('/login', async (req, res) => {
+  try {
+    const user = await User.findOne({ uid: req.body.uid })
+    res.send(user.toObject({ virtuals: true }));
+  } catch (error) {
+    res.send(404, 'user not found');
+  }
+})
+
 router.post('/register', async (req, res) => {
   try {
     await validator.validateAll(req.body, {
