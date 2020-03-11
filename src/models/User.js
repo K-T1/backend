@@ -7,7 +7,7 @@ const User = new Schema({
   password: String,
   uid: String,
   favoritePhotos: [Schema.Types.ObjectId],
-  photos: [Schema.Types.ObjectId]
+  photos: []
 }, {
   toObject: {
     virtuals: true,
