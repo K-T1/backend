@@ -7,7 +7,8 @@ const Photo = new Schema({
   deletedAt: Date,
   width: Number,
   height: Number,
-  ownerId: Schema.Types.ObjectId
+  ownerId: Schema.Types.ObjectId,
+  likedUser: [Schema.Types.ObjectId],
 }, {
   timestamps: true,
   toObject: {

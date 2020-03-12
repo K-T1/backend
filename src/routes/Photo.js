@@ -112,6 +112,7 @@ router.put('/fav', async (req, res) => {
     res.send(400, 'User not found')
     return
   }
+  photo.likedUser.push(user._id)
   photo.favorite += 1
   user.favoritePhotos.push(photo._id)
   await photo.save()
@@ -132,9 +133,14 @@ router.put('/unfav', async (req, res) => {
   }
   photo.favorite -= 1
 
-  const index = user.favoritePhotos.indexOf(photo._id)
-  if (index >= 0) {
-    user.favoritePhotos.splice(index, 1);
+  const photoIndex = user.favoritePhotos.indexOf(photo._id)
+  if (photoIndex >= 0) {
+    user.favoritePhotos.splice(photoIndex, 1);
+  }
+
+  const userIndex = user.likedUser.indexOf(user._id)
+  if (userIndex >= 0) {
+    photo.likedUser.splice(userIndex, 1);
   }
 
   await photo.save()
