@@ -1,3 +1,4 @@
 node_modules/
 db
 service-account-file.json
+.env
