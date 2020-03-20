@@ -1,12 +1,15 @@
+import { } from 'dotenv/config'
 import createError from 'http-errors'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
+
 import mongoose from '../mongoose'
 
 import indexRouter from './routes/index'
 import usersRouter from './routes/User'
 import photoRouter from './routes/Photo'
+
 
 const DB_PORT = 27017
 const DB_URL = process.env.MONGODB_HOST || 'mongodb://localhost'
@@ -31,6 +34,14 @@ app.use(cookieParser());
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/photo', photoRouter);
+
+app.use((req, res, next) => {
+  if (req.originalUrl === '/favicon.ico') {
+    res.status(204).json({ nope: true });
+  } else {
+    next();
+  }
+})
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {

@@ -15,15 +15,15 @@ const hashPassword = async (password) => {
   return await bcrypt.hash(password, 10)
 }
 
-router.get('/', async (req, res) => {  
+router.get('/', async (req, res) => {
   const users = await User.find({});
   if (!users) {
     res.send(404, 'users not found');
   }
-  const response = await Promise.all(users.map(async (user) => { 
+  const response = await Promise.all(users.map(async (user) => {
     const photos = await Photo.find({ ownerId: user._id })
     user.photos = photos
-    return user.toObject({ virtuals: true }) 
+    return user.toObject({ virtuals: true })
   }))
   res.send(response);
 });
@@ -60,9 +60,9 @@ router.post('/register', async (req, res) => {
     })
     // Check duplicated displayname
     const duplicatedUser = await User.findOne({ displayName: req.body.displayName })
-    if(duplicatedUser) {
+    if (duplicatedUser) {
       res.send(422, 'This display name is already used')
-    } else if(!validateEmail(req.body.email)) {
+    } else if (!validateEmail(req.body.email)) {
       res.send(422, 'Invalid format')
     } else {
       // Hash password
@@ -83,14 +83,14 @@ router.post('/register', async (req, res) => {
 })
 
 router.put('/edit/:userId', async (req, res) => {
-  const user = await User.findOne({_id: req.params.userId})
+  const user = await User.findOne({ _id: req.params.userId })
   if (!user) {
     res.send(400, 'User not found')
     return;
   }
   if (req.body.email) {
     if (!validateEmail(req.body.email)) {
-      res.send(422,'Invalid format')
+      res.send(422, 'Invalid format')
       return;
     }
   }

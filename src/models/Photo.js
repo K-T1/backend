@@ -8,7 +8,6 @@ const Photo = new Schema({
   width: Number,
   height: Number,
   ownerId: Schema.Types.ObjectId,
-  likedUser: [Schema.Types.ObjectId],
 }, {
   timestamps: true,
   toObject: {
