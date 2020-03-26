@@ -126,7 +126,7 @@ router.put('/fav', withAuth, async (req, res) => {
     user.favoritePhotos.push(photo._id)
     await photo.save()
     await user.save()
-    res.send(200, photo.toObject({ virtuals: true }))
+    return res.send(200, photo.toObject({ virtuals: true }))
   }
   res.sendStatus(401)
 })
@@ -152,7 +152,7 @@ router.put('/unfav', withAuth, async (req, res) => {
 
     await photo.save()
     await user.save()
-    res.send(200, photo.toObject({ virtuals: true }))
+    return res.send(200, photo.toObject({ virtuals: true }))
   }
   res.sendStatus(401)
 })
