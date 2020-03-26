@@ -7,12 +7,8 @@ const auth = firebaseAdmin.auth()
 const decodeToken = async (req) => {
   let decodedToken
 
-  try {
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
-      decodedToken = await auth.verifyIdToken(req.headers.authorization.split('Bearer ')[1])
-    }
-  } catch (error) {
-    console.log(error);
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    decodedToken = await auth.verifyIdToken(req.headers.authorization.split('Bearer ')[1])
   }
   return decodedToken
 }
@@ -20,7 +16,9 @@ const decodeToken = async (req) => {
 export default async (req, res, next) => {
   // TODO: Handle no bearer
   const decodedToken = await decodeToken(req)
-  const user = await User.findOne({ uid: decodedToken.uid })
-  req.user = user
+  if (decodedToken) {
+    const user = await User.findOne({ uid: decodedToken.uid })
+    req.user = user
+  }
   return next()
 }

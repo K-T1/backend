@@ -48,7 +48,7 @@ router.get('/', withAuth, async (req, res) => {
 
   paginate.data = paginate.data.map(photo => {
     return {
-      viewerLiked: req.user.favoritePhotos.some(favPhotoId => favPhotoId.toString() === photo.id),
+      viewerLiked: req.user ? req.user.favoritePhotos.some(favPhotoId => favPhotoId.toString() === photo.id) : false,
       ...photo.toObject({ virtuals: true })
     }
   })
@@ -110,50 +110,51 @@ router.delete('/delete/:photoId', async (req, res) => {
 })
 
 router.put('/fav', withAuth, async (req, res) => {
-  const photo = await Photo.findOne({ _id: req.body.photoId })
-  const user = await User.findOne({ _id: req.user.id })
-  if (!photo) {
-    res.send(400, 'Photo not found')
-    return
+  if (req.user) {
+    const photo = await Photo.findOne({ _id: req.body.photoId })
+    const user = await User.findOne({ _id: req.user.id })
+    if (!photo) {
+      res.send(400, 'Photo not found')
+      return
+    }
+    if (!user) {
+      res.send(400, 'User not found')
+      return
+    }
+    // photo.likedUser.push(user._id)
+    photo.favorite += 1
+    user.favoritePhotos.push(photo._id)
+    await photo.save()
+    await user.save()
+    res.send(200, photo.toObject({ virtuals: true }))
   }
-  if (!user) {
-    res.send(400, 'User not found')
-    return
-  }
-  // photo.likedUser.push(user._id)
-  photo.favorite += 1
-  user.favoritePhotos.push(photo._id)
-  await photo.save()
-  await user.save()
-  res.send(200, photo.toObject({ virtuals: true }))
+  res.sendStatus(401)
 })
 
 router.put('/unfav', withAuth, async (req, res) => {
-  const photo = await Photo.findOne({ _id: req.body.photoId })
-  const user = await User.findOne({ _id: req.user.id })
-  if (!photo) {
-    res.send(400, 'Photo not found')
-    return
-  }
-  if (!user) {
-    res.send(400, 'User not found')
-    return
-  }
-  photo.favorite -= 1
+  if (req.user) {
+    const photo = await Photo.findOne({ _id: req.body.photoId })
+    const user = await User.findOne({ _id: req.user.id })
+    if (!photo) {
+      res.send(400, 'Photo not found')
+      return
+    }
+    if (!user) {
+      res.send(400, 'User not found')
+      return
+    }
+    photo.favorite -= 1
 
-  const photoIndex = user.favoritePhotos.indexOf(photo._id)
-  if (photoIndex >= 0) {
-    user.favoritePhotos.splice(photoIndex, 1);
+    const photoIndex = user.favoritePhotos.indexOf(photo._id)
+    if (photoIndex >= 0) {
+      user.favoritePhotos.splice(photoIndex, 1);
+    }
+
+    await photo.save()
+    await user.save()
+    res.send(200, photo.toObject({ virtuals: true }))
   }
-
-  // const userIndex = user.likedUser.indexOf(user._id)
-  // if (userIndex >= 0) {
-  //   photo.likedUser.splice(userIndex, 1);
-  // }
-
-  await photo.save()
-  await user.save()
-  res.send(200, photo.toObject({ virtuals: true }))
+  res.sendStatus(401)
 })
 
 export default router
