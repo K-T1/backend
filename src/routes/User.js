@@ -98,9 +98,9 @@ router.post('/register/validate', async (req,res) => {
     }
 
     if (!data.password) {
-      error.password = 'Invalida password';
+      error.password = 'This field is required';
     } else if (data.password.length < 6) {
-      error.password = 'Password must longer than 6 characters'
+      error.password = 'Password must be longer than 6 characters'
     }
 
     if(error.displayName || error.email || error.password) {      
