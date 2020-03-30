@@ -42,7 +42,7 @@ router.get('/:userId', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const user = await User.findOne({ uid: req.body.uid })
-    const photos = await Photo.find({ ownerId: req.params.userId })
+    const photos = await Photo.find({ ownerId: user._id })
     user.photos = photos
     res.send(user.toObject({ virtuals: true }));
   } catch (error) {
@@ -52,31 +52,61 @@ router.post('/login', async (req, res) => {
 
 router.post('/register', async (req, res) => {
   try {
-    await validator.validateAll(req.body, {
-      displayName: 'required|string',
-      password: 'required|string',
-      email: 'required|string',
-      uid: 'required|string'
-    })
-    // Check duplicated displayname
-    const duplicatedUser = await User.findOne({ displayName: req.body.displayName })
-    if (duplicatedUser) {
-      res.send(422, 'This display name is already used')
-    } else if (!validateEmail(req.body.email)) {
-      res.send(422, 'Invalid format')
-    } else {
-      // Hash password
-      const password = await hashPassword(req.body.password)
-      const user = new User({
-        displayName: req.body.displayName,
-        password: password,
-        email: req.body.email,
-        displayImage: req.body.displayImage,
-        uid: req.body.uid
-      })
-      await user.save()
-      res.send(200, user.toObject({ virtuals: true }))
+    if(!req.body.uid) {
+      res.send(422, 'uid is required')
+      return
     }
+    // Hash password
+    const password = await hashPassword(req.body.password)
+    const user = new User({
+      displayName: req.body.displayName,
+      password: password,
+      email: req.body.email,
+      displayImage: req.body.displayImage,
+      uid: req.body.uid
+    })
+    await user.save()
+    res.send(200, user.toObject({ virtuals: true }))
+  } catch (error) {
+    res.send(422, error);
+  }
+})
+
+router.post('/register/validate', async (req,res) => {
+  try {
+    const data = req.body
+    let error = {}
+
+    if (!data.displayName) {
+      error.displayName = 'This field is required'
+    } else {
+      const duplicatedUser = await User.findOne({ displayName: data.displayName })
+      if (duplicatedUser) {
+        error.displayName = 'This display name is already used';
+      }
+    }
+
+    if(!data.email) {
+      error.email = 'This field is required'
+    } else if (!validateEmail(data.email)) {
+      error.email = 'Invalid format';
+    } else {
+      const duplicatedUser = await User.findOne({ email: data.email })
+      if (duplicatedUser) {
+        error.email = 'This email is already used';
+      }
+    }
+
+    if (!data.password) {
+      error.password = 'Invalida password';
+    } else if (data.password.length < 6) {
+      error.password = 'Password must longer than 6 characters'
+    }
+
+    if(error.displayName || error.email || error.password) {      
+      return res.send(422, error)
+    }
+    return res.send(200, 'Pass')
   } catch (error) {
     res.send(422, error);
   }
