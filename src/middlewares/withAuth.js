@@ -21,7 +21,6 @@ export default async (req, res, next) => {
     const user = await User.findOne({ uid: decodedToken.uid })
     user.photos = await Photo.find({ ownerId: user._id })
     user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
-    // user.photos.map(photo => ({ ...photo, owner: user }))
 
     await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
 
