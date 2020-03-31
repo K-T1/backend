@@ -48,7 +48,7 @@ router.get('/', withAuth, async (req, res) => {
 
   paginate.data = paginate.data.map(photo => {
     return {
-      viewerLiked: req.user ? req.user.favoritePhotos.some(favPhotoId => favPhotoId.toString() === photo.id) : false,
+      viewerLiked: req.user ? req.user.favoritePhotos.some(favPhoto => favPhoto.id === photo.id) : false,
       ...photo.toObject({ virtuals: true })
     }
   })

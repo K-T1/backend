@@ -8,7 +8,7 @@ const photos = [
     deletedAt: null,
     width: 1025,
     height: 769,
-    ownerId: '5e661b2865070a36dc2ff288',
+    ownerId: '5e831786acde786f9dfb865c',
   },
   {
     usageCount: 0,
@@ -17,7 +17,7 @@ const photos = [
     deletedAt: null,
     width: 576,
     height: 769,
-    ownerId: '5e661f3b65070a36dc2ff289',
+    ownerId: '5e831786acde786f9dfb865d',
   },
   {
     usageCount: 0,
@@ -26,7 +26,7 @@ const photos = [
     deletedAt: null,
     width: 512,
     height: 768,
-    ownerId: '5e66207065070a36dc2ff28a',
+    ownerId: '5e831786acde786f9dfb865e',
   }
 ]
 
