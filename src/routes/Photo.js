@@ -7,10 +7,10 @@ import withAuth from '../middlewares/withAuth';
 
 const router = express.Router();
 
-const createPhoto = (req) => {
+const createPhoto = (req, ownerId) => {
   const photo = new Photo({
+    ownerId,
     url: req.url,
-    ownerId: req.ownerId,
     width: req.width,
     height: req.height,
     deletedAt: null,
@@ -66,36 +66,39 @@ router.get('/:photoId', async (req, res) => {
   res.send(200, photo.toObject({ virtuals: true }))
 })
 
-router.post('/upload', async (req, res) => {
-  if (!validateUrl(req.body.url)) {
-    res.send(422, 'URL is invalid')
-    return
+router.post('/upload', withAuth, async (req, res) => {
+  if (req.user) {
+    if (!validateUrl(req.body.url)) {
+      return res.send(422, 'URL is invalid')
+    }
+    if (!(req.body.width && req.body.height)) {
+      return res.send(422, 'Width and height is required.')
+    }
+    const photo = createPhoto(req.body, req.user.id)
+    await photo.save()
+    return res.send(200, photo.toObject({ virtuals: true }))
   }
-  if (!req.body.ownerId) {
-    res.send(422, 'OwnerId is required')
-    return
-  }
-  const photo = createPhoto(req.body)
-  await photo.save()
-  res.send(200, photo.toObject({ virtuals: true }))
+  res.sendStatus(401)
 })
 
 router.post('/process', async (req, res) => {
-  if (!validateUrl(req.body.url)) {
-    console.log('in');
-    res.send(422, 'URL is invalid')
-    return
+  if (req.user) {
+    if (!validateUrl(req.body.url)) {
+      return res.send(422, 'URL is invalid')
+    }
+    const original = await Photo.findOne({ _id: req.body.originalId })
+    if (!original) {
+      res.send(400, 'Photo not found')
+      return
+    }
+    original.usageCount += 1
+    await original.save()
+    // TODO: Implement python
+    // const photo = createPhoto(req.body, req.user.id)
+    // await photo.save()
+    return res.send(200, original.toObject({ virtuals: true }))
   }
-  const original = await Photo.findOne({ _id: req.body.originalId })
-  if (!original) {
-    res.send(400, 'Photo not found')
-    return
-  }
-  original.usageCount += 1
-  await original.save()
-  const photo = createPhoto(req.body)
-  await photo.save()
-  res.send(200, photo.toObject({ virtuals: true }))
+  res.sendStatus(401)
 })
 
 router.delete('/delete/:photoId', async (req, res) => {

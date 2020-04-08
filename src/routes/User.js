@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
     const photos = await Photo.find({ ownerId: user._id })
     user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
     await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
-    user.photos = photos
+    user.photos = photos.reverse()
     return user.toObject({ virtuals: true })
   }))
   res.send(response);
@@ -44,7 +44,7 @@ router.get('/:userId', async (req, res) => {
     const photos = await Photo.find({ ownerId: req.params.userId })
     user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
     await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
-    user.photos = photos
+    user.photos = photos.reverse()
     res.send(user.toObject({ virtuals: true }));
   } catch (error) {
     res.send(404, 'user not found');
@@ -57,7 +57,7 @@ router.post('/login', async (req, res) => {
     const photos = await Photo.find({ ownerId: user._id })
     user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
     await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
-    user.photos = photos
+    user.photos = photos.reverse()
     res.send(user.toObject({ virtuals: true }));
   } catch (error) {
     res.send(404, 'user not found');
