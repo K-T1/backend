@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import User from '../models/User'
 import validator from '../../validation'
 import Photo from '../models/Photo';
+import withAuth from '../middlewares/withAuth';
 
 const router = express.Router();
 
@@ -22,17 +23,28 @@ router.get('/', async (req, res) => {
   }
   const response = await Promise.all(users.map(async (user) => {
     const photos = await Photo.find({ ownerId: user._id })
-    user.photos = photos
+    user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
+    await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
+    user.photos = photos.reverse()
     return user.toObject({ virtuals: true })
   }))
   res.send(response);
 });
 
+router.get('/current', withAuth, async (req, res) => {
+  if (req.user) {
+    return res.send(200, req.user.toObject({ virtuals: true }))
+  }
+  res.sendStatus(401)
+})
+
 router.get('/:userId', async (req, res) => {
   try {
     const user = await User.findOne({ _id: req.params.userId })
     const photos = await Photo.find({ ownerId: req.params.userId })
-    user.photos = photos
+    user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
+    await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
+    user.photos = photos.reverse()
     res.send(user.toObject({ virtuals: true }));
   } catch (error) {
     res.send(404, 'user not found');
@@ -43,7 +55,9 @@ router.post('/login', async (req, res) => {
   try {
     const user = await User.findOne({ uid: req.body.uid })
     const photos = await Photo.find({ ownerId: user._id })
-    user.photos = photos
+    user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
+    await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
+    user.photos = photos.reverse()
     res.send(user.toObject({ virtuals: true }));
   } catch (error) {
     res.send(404, 'user not found');
@@ -52,7 +66,7 @@ router.post('/login', async (req, res) => {
 
 router.post('/register', async (req, res) => {
   try {
-    if(!req.body.uid) {
+    if (!req.body.uid) {
       res.send(422, 'uid is required')
       return
     }
@@ -72,7 +86,7 @@ router.post('/register', async (req, res) => {
   }
 })
 
-router.post('/register/validate', async (req,res) => {
+router.post('/register/validate', async (req, res) => {
   try {
     const data = req.body
     let error = {}
@@ -86,7 +100,7 @@ router.post('/register/validate', async (req,res) => {
       }
     }
 
-    if(!data.email) {
+    if (!data.email) {
       error.email = 'This field is required'
     } else if (!validateEmail(data.email)) {
       error.email = 'Invalid format';
@@ -103,7 +117,7 @@ router.post('/register/validate', async (req,res) => {
       error.password = 'Password must be longer than 6 characters'
     }
 
-    if(error.displayName || error.email || error.password) {      
+    if (error.displayName || error.email || error.password) {
       return res.send(422, error)
     }
     return res.send(200, 'Pass')
