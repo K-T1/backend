@@ -3,6 +3,7 @@ import createError from 'http-errors'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
+import fileUpload from 'express-fileupload'
 
 import mongoose from '../mongoose'
 
@@ -30,6 +31,7 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(fileUpload({ createParentPath: true, useTempFiles: true }))
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
