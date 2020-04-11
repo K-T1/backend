@@ -112,9 +112,10 @@ router.post('/process', async (req, res) => {
       if (err) return res.send(400, err);
 
       const url = getPublicFirebaseUrl(fileName, firebaseStorageDownloadTokens)
-      const sourcePhotoId = req.body.sourcePhotoId
-      if (sourcePhotoId) {
-        const sourcePhoto = await Photo.findOne({ _id: sourcePhotoId })
+      const referencePhotoId = req.body.referenceId
+
+      if (referencePhotoId != 'undefined') {
+        const sourcePhoto = await Photo.findOne({ _id: referencePhotoId })
         if (!sourcePhoto) return res.send(400, 'Photo not found')
 
         sourcePhoto.usageCount += 1
