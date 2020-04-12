@@ -114,7 +114,7 @@ router.delete('/delete/:photoId', async (req, res) => {
 
 router.put('/fav', withAuth, async (req, res) => {
   if (req.user) {
-    const photo = await Photo.findOne({ _id: req.body.photoId })
+    const photo = await Photo.findOne({ $and: [{ _id: req.params.photoId }, { deletedAt: null }] })
     const user = await User.findOne({ _id: req.user.id })
     if (!photo) {
       res.send(400, 'Photo not found')
@@ -136,7 +136,7 @@ router.put('/fav', withAuth, async (req, res) => {
 
 router.put('/unfav', withAuth, async (req, res) => {
   if (req.user) {
-    const photo = await Photo.findOne({ _id: req.body.photoId })
+    const photo = await Photo.findOne({ $and: [{ _id: req.params.photoId }, { deletedAt: null }] })
     const user = await User.findOne({ _id: req.user.id })
     if (!photo) {
       res.send(400, 'Photo not found')
