@@ -126,15 +126,16 @@ router.post('/process', async (req, res) => {
   })
 })
 
-router.delete('/delete/:photoId', async (req, res) => {
-  const photo = await Photo.findOne({ _id: req.params.photoId })
-  if (!photo) {
-    res.send(400, 'Photo not found')
-    return
+router.delete('/delete/:photoId', withAuth, async (req, res) => {
+  if (req.user) {
+    const photo = await Photo.findOne({ _id: req.params.photoId })
+    if (!photo) return res.send(400, 'Photo not found')
+    if (photo.ownerId != req.user.id) return res.status(401).send('Can\'t delete other user photo')
+    photo.deletedAt = new Date();
+    await photo.save()
+    return res.send(200, 'Removed!')
   }
-  photo.deletedAt = new Date();
-  await photo.save()
-  res.send(200, 'Removed!')
+  res.sendStatus(401)
 })
 
 router.put('/fav', withAuth, async (req, res) => {
