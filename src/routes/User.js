@@ -72,8 +72,6 @@ router.post('/register', async (req, res) => {
       return res.send(422, 'uid is required')
     }
     // Hash password
-    console.log(req.body.displayImage);
-
     const password = await hashPassword(req.body.password)
     const user = new User({
       displayName: req.body.displayName,
@@ -82,6 +80,7 @@ router.post('/register', async (req, res) => {
       displayImage: req.body.displayImage,
       uid: req.body.uid
     })
+
     await user.save()
     res.send(200, user.toObject({ virtuals: true }))
   } catch (error) {
@@ -132,13 +131,11 @@ router.post('/register/validate', async (req, res) => {
 router.put('/edit/:userId', async (req, res) => {
   const user = await User.findOne({ _id: req.params.userId })
   if (!user) {
-    res.send(400, 'User not found')
-    return;
+    return res.send(400, 'User not found')
   }
   if (req.body.email) {
     if (!validateEmail(req.body.email)) {
-      res.send(422, 'Invalid format')
-      return;
+      return res.send(422, 'Invalid format')
     }
   }
   user.displayName = req.body.displayName || user.displayName

@@ -66,8 +66,7 @@ router.get('/', withAuth, async (req, res) => {
 router.get('/:photoId', async (req, res) => {
   const photo = await Photo.findOne({ $and: [{ _id: req.params.photoId }, { deletedAt: null }] })
   if (!photo) {
-    res.send(400, 'Photo not found')
-    return
+    return res.send(400, 'Photo not found')
   }
   await photo.populate('owner').execPopulate()
   res.send(200, photo.toObject({ virtuals: true }))
@@ -165,12 +164,10 @@ router.put('/unfav', withAuth, async (req, res) => {
     const photo = await Photo.findOne({ $and: [{ _id: req.body.photoId }, { deletedAt: null }] })
     const user = req.user
     if (!photo) {
-      res.send(400, 'Photo not found')
-      return
+      return res.send(400, 'Photo not found')
     }
     if (!user) {
-      res.send(400, 'User not found')
-      return
+      return res.send(400, 'User not found')
     }
     photo.favorite -= 1
 
