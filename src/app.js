@@ -13,7 +13,7 @@ import photoRouter from './routes/Photo'
 
 
 const DB_PORT = 27017
-const DB_URL = process.env.MONGODB_HOST || 'mongodb://localhost'
+const DB_URL = process.env.MONGODB_HOST || 'mongodb://db'
 
 // MongoDB
 mongoose.connect(

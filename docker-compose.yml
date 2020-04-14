@@ -11,3 +11,15 @@ services:
     volumes:
       - ./db:/data/db
     restart: always
+  
+  server:
+    build: .
+    container_name: koomtone-server
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    volumes:
+      - .:/usr/src/app
+    restart: always
+  

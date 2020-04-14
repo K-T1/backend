@@ -66,12 +66,13 @@ def main():
 
     # args = parser.parse_args()
 
-    source = cv2.imread(sys.argv[1])
-    reference = cv2.imread(sys.argv[2])
-    filePath = sys.argv[3]
+    # source = cv2.imread(sys.argv[1])
+    # reference = cv2.imread(sys.argv[2])
+    # filePath = sys.argv[3]
 
-    result = transfer_using_colorspace(source, reference, strength=0.8)
-    cv2.imwrite(filePath, result)
+    # result = transfer_using_colorspace(source, reference, strength=0.8)
+    # cv2.imwrite(filePath, result)
+    print('color')
 
 
 if __name__ == "__main__":
