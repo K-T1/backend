@@ -16,20 +16,30 @@ const hashPassword = async (password) => {
   return await bcrypt.hash(password, 10)
 }
 
-router.get('/', async (req, res) => {
-  const users = await User.find({});
-  if (!users) {
-    res.send(404, 'users not found');
-  }
-  const response = await Promise.all(users.map(async (user) => {
-    const photos = await Photo.find({ ownerId: user._id })
-    user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
-    await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
-    user.photos = photos.reverse()
-    return user.toObject({ virtuals: true })
-  }))
-  res.send(response);
-});
+export const findUserByUserId = async (uid) => {
+  const user = await User.findOne({ uid }, { password: 0 })
+  const photos = await Photo.find({ $and: [{ ownerId: user._id }, { deletedAt: null }] })
+  user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
+  await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
+  user.photos = photos.reverse()
+
+  return user
+}
+
+// router.get('/', async (req, res) => {
+//   const users = await User.find({});
+//   if (!users) {
+//     res.send(404, 'users not found');
+//   }
+//   const response = await Promise.all(users.map(async (user) => {
+//     const photos = await Photo.find({ ownerId: user._id })
+//     user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
+//     await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
+//     user.photos = photos.reverse()
+//     return user.toObject({ virtuals: true })
+//   }))
+//   res.send(response);
+// });
 
 router.get('/current', withAuth, async (req, res) => {
   if (req.user) {
@@ -40,11 +50,7 @@ router.get('/current', withAuth, async (req, res) => {
 
 router.get('/:userId', async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.params.userId })
-    const photos = await Photo.find({ ownerId: req.params.userId })
-    user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
-    await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
-    user.photos = photos.reverse()
+    const user = await findUserByUserId(req.params.userId)
     res.send(user.toObject({ virtuals: true }));
   } catch (error) {
     res.send(404, 'user not found');
@@ -53,11 +59,7 @@ router.get('/:userId', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   try {
-    const user = await User.findOne({ uid: req.body.uid })
-    const photos = await Photo.find({ ownerId: user._id })
-    user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
-    await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
-    user.photos = photos.reverse()
+    const user = await findUserByUserId(req.body.uid)
     res.send(user.toObject({ virtuals: true }));
   } catch (error) {
     res.send(404, 'user not found');
@@ -67,10 +69,11 @@ router.post('/login', async (req, res) => {
 router.post('/register', async (req, res) => {
   try {
     if (!req.body.uid) {
-      res.send(422, 'uid is required')
-      return
+      return res.send(422, 'uid is required')
     }
     // Hash password
+    console.log(req.body.displayImage);
+
     const password = await hashPassword(req.body.password)
     const user = new User({
       displayName: req.body.displayName,

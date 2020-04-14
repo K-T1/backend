@@ -2,6 +2,7 @@ import firebaseAdmin from '../firebaseAdmin'
 
 import User from '../models/User'
 import Photo from '../models/Photo'
+import { findUserByUserId } from '../routes/User'
 
 const auth = firebaseAdmin.auth()
 
@@ -18,13 +19,7 @@ export default async (req, res, next) => {
   // TODO: Handle no bearer
   const decodedToken = await decodeToken(req)
   if (decodedToken) {
-    const user = await User.findOne({ uid: decodedToken.uid })
-    user.photos = await Photo.find({ ownerId: user._id })
-    user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
-
-    await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
-
-    req.user = user
+    req.user = await findUserByUserId(decodedToken.uid)
   }
   return next()
 }
