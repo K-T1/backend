@@ -20,6 +20,6 @@ services:
     depends_on:
       - db
     volumes:
-      - .:/usr/src/app
+      - ./src:/usr/src/app/src
+      - ./package.json:/usr/src/app/package.json
     restart: always
-  

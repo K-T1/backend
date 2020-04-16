@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser'
 import logger from 'morgan'
 import fileUpload from 'express-fileupload'
 
-import mongoose from '../mongoose'
+import mongoose from './mongoose'
 
 import indexRouter from './routes/index'
 import usersRouter from './routes/User'

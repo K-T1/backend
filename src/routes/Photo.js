@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import admin from '../firebaseAdmin'
 import Photo from '../models/Photo'
 import validator from '../../validation'
-import { modelPaginator } from '../../pagination'
+import { modelPaginator } from '../pagination'
 import User from '../models/User';
 import withAuth from '../middlewares/withAuth';
 
