@@ -8,7 +8,7 @@ import Photo from '../models/Photo'
 import validator from '../../validation'
 import { modelPaginator } from '../pagination'
 import User from '../models/User';
-import withAuth from '../middlewares/withAuth';
+import withAuth, { decodeToken } from '../middlewares/withAuth';
 
 const router = express.Router();
 
@@ -53,12 +53,12 @@ router.get('/', withAuth, async (req, res) => {
 
   const paginate = modelPaginator(photos)
 
-  paginate.data = paginate.data.map(photo => {
+  paginate.data = paginate.data.map(photo => {    
     return {
       viewerLiked: req.user ? req.user.favoritePhotos.some(favPhoto => favPhoto.id === photo.id) : false,
       ...photo.toObject({ virtuals: true })
     }
-  })
+  })  
 
   res.send(200, paginate)
 })
@@ -137,50 +137,50 @@ router.delete('/delete/:photoId', withAuth, async (req, res) => {
   res.sendStatus(401)
 })
 
-router.put('/fav', withAuth, async (req, res) => {
-  if (req.user) {
-    const photo = await Photo.findOne({ $and: [{ _id: req.body.photoId }, { deletedAt: null }] })
-    const user = req.user
-    if (!photo) {
-      res.send(400, 'Photo not found')
-      return
-    }
-    if (!user) {
-      res.send(400, 'User not found')
-      return
-    }
-    // photo.likedUser.push(user._id)
-    photo.favorite += 1
-    user.favoritePhotos.push(photo._id)
-    await photo.save()
-    await user.save()
-    return res.send(200, photo.toObject({ virtuals: true }))
+router.put('/fav', async (req, res) => {
+  const decodedToken = await decodeToken(req)
+  if(!decodedToken) return res.send(401)
+  const photo = await Photo.findOne({ $and: [{ _id: req.body.photoId }, { deletedAt: null }] })
+  const user = await User.findOne({ uid: decodedToken.uid }, { password: 0 })
+  if (!photo) {
+    return res.send(400, 'Photo not found')
   }
-  res.sendStatus(401)
+  if (!user) {
+    return res.send(400, 'User not found')
+  }
+
+  photo.favorite += 1
+  user.favoritePhotos.push(photo._id)
+  await photo.save()
+  await user.save()
+
+  return res.send(200, photo.toObject({ virtuals: true }))
 })
 
-router.put('/unfav', withAuth, async (req, res) => {
-  if (req.user) {
-    const photo = await Photo.findOne({ $and: [{ _id: req.body.photoId }, { deletedAt: null }] })
-    const user = req.user
-    if (!photo) {
-      return res.send(400, 'Photo not found')
-    }
-    if (!user) {
-      return res.send(400, 'User not found')
-    }
-    photo.favorite -= 1
-
-    const photoIndex = user.favoritePhotos.indexOf(photo._id)
-    if (photoIndex >= 0) {
-      user.favoritePhotos.splice(photoIndex, 1);
-    }
-
-    await photo.save()
-    await user.save()
-    return res.send(200, photo.toObject({ virtuals: true }))
+router.put('/unfav', async (req, res) => {
+  const decodedToken = await decodeToken(req)
+  if(!decodedToken) return res.send(401)
+  const photo = await Photo.findOne({ $and: [{ _id: req.body.photoId }, { deletedAt: null }] })
+  const user = await User.findOne({ uid: decodedToken.uid }, { password: 0 })
+  if (!photo) {
+    return res.send(400, 'Photo not found')
   }
-  res.sendStatus(401)
+  if (!user) {
+    return res.send(400, 'User not found')
+  }
+  if(photo.favorite > 0) {
+    photo.favorite -= 1
+  }
+  
+  const photoIndex = user.favoritePhotos.indexOf(photo._id)
+  
+  if (photoIndex >= 0) {
+    user.favoritePhotos.splice(photoIndex, 1);
+  }
+
+  await photo.save()
+  await user.save()
+  return res.send(200, photo.toObject({ virtuals: true }))
 })
 
 export default router

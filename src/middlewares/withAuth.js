@@ -6,7 +6,7 @@ import { findUserByUserId } from '../routes/User'
 
 const auth = firebaseAdmin.auth()
 
-const decodeToken = async (req) => {
+export const decodeToken = async (req) => {
   let decodedToken
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
