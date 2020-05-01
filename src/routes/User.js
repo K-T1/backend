@@ -19,7 +19,7 @@ const hashPassword = async (password) => {
 export const findUserByUserId = async (uid) => {
   const user = await User.findOne({ uid }, { password: 0 })
   const photos = await Photo.find({ $and: [{ ownerId: user._id }, { deletedAt: null }] })
-  user.favoritePhotos = await Photo.find().where('_id').in(user.favoritePhotos).exec()
+  user.favoritePhotos = await Photo.find({ deletedAt: null }).where('_id').in(user.favoritePhotos).exec()
   await Promise.all(user.favoritePhotos.map(photo => photo.populate('owner').execPopulate()))
   user.photos = photos.reverse()
 
